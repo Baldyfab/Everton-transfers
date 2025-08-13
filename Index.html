@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Everton Transfer Rumor Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffff00, #e6e600);
+            color: #000;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 3px solid #ffff00;
+            border-radius: 10px;
+            font-size: 1.1em;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #e6e600;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+        }
+
+        .search-btn {
+            background: #ffff00;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 255, 0, 0.3);
+        }
+
+        .search-btn:hover {
+            background: #e6e600;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ffff00;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #000;
+            border-left: 5px solid #ffff00;
+            padding-left: 15px;
+        }
+
+        .rumor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .rumor-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #ffff00;
+        }
+
+        .rumor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .rumor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .player-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .reliability {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .high { background: #00ff00; color: #000; }
+        .medium { background: #ffaa00; color: #000; }
+        .low { background: #ff4444; }
+
+        .rumor-details {
+            margin-bottom: 15px;
+        }
+
+        .transfer-type {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .source-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #ffff00;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #ffff00;
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .search-bar {
+                flex-direction: column;
+            }
+            
+            .rumor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔵 Everton Transfer Hub</h1>
+            <p>Real-time transfer rumors and updates for the Toffees</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Search for specific players, positions, or clubs...">
+                <button class="search-btn" onclick="searchRumors()">🔍 Search Rumors</button>
+            </div>
+            
+            <div class="filters">
+                <button class="filter-btn active" onclick="filterBy('all')">All Rumors</button>
+                <button class="filter-btn" onclick="filterBy('incoming')">Incoming</button>
+                <button class="filter-btn" onclick="filterBy('outgoing')">Outgoing</button>
+                <button class="filter-btn" onclick="filterBy('high')">High Reliability</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Scanning the web for latest Everton transfer rumors...</p>
+        </div>
+
+        <div class="results-section" id="results">
+            <div class="summary-card">
+                <div class="summary-title">Transfer Summary</div>
+                <p><strong>Total Rumors Found:</strong> <span id="totalRumors">12</span></p>
+                <p><strong>Incoming Transfers:</strong> <span id="incomingCount">7</span></p>
+                <p><strong>Outgoing Transfers:</strong> <span id="outgoingCount">5</span></p>
+                <p><strong>Last Updated:</strong> <span id="lastUpdated">Just now</span></p>
+            </div>
+
+            <div class="rumor-grid" id="rumorGrid">
+                <!-- Rumors will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sampleRumors = [
+            {
+                player: "Viktor Gyokeres",
+                club: "Sporting CP",
+                type: "incoming",
+                reliability: "high",
+                details: "Everton reportedly preparing £60m bid for the Swedish striker. Player said to be keen on Premier League move.",
+                source: "Sky Sports",
+                time: "2 hours ago"
+            },
+            {
+                player: "Morgan Gibbs-White",
+                club: "Nottingham Forest", 
+                type: "incoming",
+                reliability: "medium",
+                details: "Toffees monitoring the midfielder's situation. Forest may consider offers around £35m.",
+                source: "The Athletic",
+                time: "5 hours ago"
+            },
+            {
+                player: "Dominic Calvert-Lewin",
+                club: "Newcastle United",
+                type: "outgoing",
+                reliability: "high",
+                details: "Newcastle preparing improved £40m offer for Everton striker. Player's contract expires in 2025.",
+                source: "BBC Sport",
+                time: "1 hour ago"
+            },
+            {
+                player: "Lucas Paquetá",
+                club: "West Ham United",
+                type: "incoming",
+                reliability: "low",
+                details: "Everton among clubs interested in Brazilian midfielder if betting investigation resolved favorably.",
+                source: "Transfer News Live",
+                time: "8 hours ago"
+            },
+            {
+                player: "Jarrad Branthwaite",
+                club: "Manchester United",
+                type: "outgoing",
+                reliability: "medium",
+                details: "United maintaining interest in young defender despite rejected summer bids. New approach expected.",
+                source: "Manchester Evening News",
+                time: "3 hours ago"
+            },
+            {
+                player: "Evan Ferguson",
+                club: "Brighton & Hove Albion",
+                type: "incoming",
+                reliability: "medium",
+                details: "Everton scouts impressed by young Irish striker. Brighton value player at £25m+.",
+                source: "Liverpool Echo",
+                time: "6 hours ago"
+            },
+            {
+                player: "Amadou Onana",
+                club: "Aston Villa",
+                type: "outgoing",
+                reliability: "low",
+                details: "Villa monitoring Belgian midfielder's situation amid Everton's financial pressures.",
+                source: "Football Insider",
+                time: "12 hours ago"
+            },
+            {
+                player: "Ryan Manning",
+                club: "Southampton",
+                type: "incoming",
+                reliability: "high",
+                details: "Left-back top target for Everton with Southampton relegated. Deal could be completed for £8m.",
+                source: "Fabrizio Romano",
+                time: "4 hours ago"
+            },
+            {
+                player: "Youssef Chermiti",
+                club: "Sporting CP",
+                type: "incoming",
+                reliability: "medium",
+                details: "Young Portuguese striker linked with loan move to Goodison Park. Sporting open to temporary deal.",
+                source: "O Jogo",
+                time: "7 hours ago"
+            },
+            {
+                player: "Alex Iwobi",
+                club: "Fulham",
+                type: "outgoing",
+                reliability: "low",
+                details: "Former Everton winger's impressive form attracts interest from bigger clubs including his old team.",
+                source: "Goal.com",
+                time: "10 hours ago"
+            },
+            {
+                player: "Wilfried Gnonto",
+                club: "Leeds United",
+                type: "incoming",
+                reliability: "medium",
+                details: "Italian winger remains on Everton's radar despite Leeds' promotion push. £20m valuation.",
+                source: "Yorkshire Evening Post",
+                time: "9 hours ago"
+            },
+            {
+                player: "Ben Godfrey",
+                club: "West Ham United",
+                type: "outgoing",
+                reliability: "high",
+                details: "Hammers close to agreeing £15m deal for versatile defender. Personal terms nearly finalized.",
+                source: "David Ornstein",
+                time: "30 minutes ago"
+            }
+        ];
+
+        let currentFilter = 'all';
+        let allRumors = [...sampleRumors];
+
+        function searchRumors() {
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            setTimeout(() => {
+                if (searchTerm) {
+                    allRumors = sampleRumors.filter(rumor => 
+                        rumor.player.toLowerCase().includes(searchTerm) ||
+                        rumor.club.toLowerCase().includes(searchTerm) ||
+                        rumor.details.toLowerCase().includes(searchTerm)
+                    );
+                } else {
+                    allRumors = [...sampleRumors];
+                }
+                
+                displayRumors();
+                loading.style.display = 'none';
+                results.style.display = 'block';
+                updateSummary();
+            }, 2000);
+        }
+
+        function filterBy(type) {
+            currentFilter = type;
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            displayRumors();
+        }
+
+        function displayRumors() {
+            const grid = document.getElementById('rumorGrid');
+            let filteredRumors = [...allRumors];
+            
+            if (currentFilter !== 'all') {
+                filteredRumors = allRumors.filter(rumor => {
+                    if (currentFilter === 'high') return rumor.reliability === 'high';
+                    return rumor.type === currentFilter;
+                });
+            }
+            
+            grid.innerHTML = filteredRumors.map(rumor => `
+                <div class="rumor-card">
+                    <div class="rumor-header">
+                        <div class="player-name">${rumor.player}</div>
+                        <div class="reliability ${rumor.reliability}">${rumor.reliability.toUpperCase()}</div>
+                    </div>
+                    <div class="rumor-details">
+                        <div class="transfer-type">${rumor.type === 'incoming' ? '↗️ INCOMING' : '↙️ OUTGOING'} ${rumor.type === 'incoming' ? 'from' : 'to'} ${rumor.club}</div>
+                        <p>${rumor.details}</p>
+                    </div>
+                    <div class="source-info">
+                        <span><strong>Source:</strong> ${rumor.source}</span>
+                        <span>${rumor.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSummary() {
+            const incoming = allRumors.filter(r => r.type === 'incoming').length;
+            const outgoing = allRumors.filter(r => r.type === 'outgoing').length;
+            
+            document.getElementById('totalRumors').textContent = allRumors.length;
+            document.getElementById('incomingCount').textContent = incoming;
+            document.getElementById('outgoingCount').textContent = outgoing;
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Auto-search on page load
+        window.addEventListener('load', () => {
+            searchRumors();
+        });
+
+        // Enter key search
+        document.querySelector('.search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchRumors();
+            }
+        });
+    </script>
+</body>
+  </html>
